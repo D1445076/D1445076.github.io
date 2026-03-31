@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="五子棋雙人對戰遊戲，在棋盤上連成五子即獲勝。支援手機與電腦瀏覽。" />
+  <title>五子棋 · Gomoku</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="page-wrapper">
+
+    <!-- Header -->
+    <header class="site-header">
+      <div class="header-inner">
+        <div class="logo">
+          <span class="logo-stone black-stone-icon"></span>
+          <span class="logo-stone white-stone-icon"></span>
+          <span class="logo-text">五子棋</span>
+          <span class="logo-sub">Gomoku</span>
+        </div>
+        <p class="tagline">雙人對戰・連成五子即勝</p>
+      </div>
+    </header>
+
+    <!-- Main content -->
+    <main class="main-content">
+
+      <!-- How to play -->
+      <section class="howto-section" id="howto">
+        <div class="howto-cards">
+          <div class="howto-card">
+            <span class="howto-icon">①</span>
+            <p>黑棋先手，雙方輪流落子</p>
+          </div>
+          <div class="howto-card">
+            <span class="howto-icon">②</span>
+            <p>點擊棋盤格線交叉點落子</p>
+          </div>
+          <div class="howto-card">
+            <span class="howto-icon">③</span>
+            <p>任一方連成五子即獲勝</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Game area -->
+      <section class="game-section">
+
+        <!-- Status bar -->
+        <div class="status-bar" id="status-bar">
+          <div class="status-player" id="black-player">
+            <div class="player-stone black-stone-icon"></div>
+            <span class="player-label">黑棋</span>
+            <div class="turn-indicator" id="black-indicator"></div>
+          </div>
+
+          <div class="status-center">
+            <p class="status-text" id="status-text">黑棋落子中…</p>
+          </div>
+
+          <div class="status-player" id="white-player">
+            <div class="turn-indicator" id="white-indicator"></div>
+            <span class="player-label">白棋</span>
+            <div class="player-stone white-stone-icon"></div>
+          </div>
+        </div>
+
+        <!-- Board wrapper -->
+        <div class="board-outer">
+          <div class="board-container">
+            <div class="board" id="board" role="grid" aria-label="五子棋棋盤"></div>
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+          <button class="btn-restart" id="btn-restart" type="button">
+            <span class="btn-icon">↺</span>
+            重新開始
+          </button>
+        </div>
+
+      </section>
+    </main>
+
+    <!-- Win overlay -->
+    <div class="overlay hidden" id="win-overlay" role="dialog" aria-modal="true" aria-labelledby="win-title">
+      <div class="overlay-card">
+        <div class="win-stones" id="win-stones">
+          <span class="big-stone" id="win-stone-icon"></span>
+        </div>
+        <h2 class="win-title" id="win-title">黑棋獲勝！</h2>
+        <p class="win-sub">恭喜連成五子！</p>
+        <button class="btn-restart btn-large" id="btn-restart-overlay" type="button">
+          <span class="btn-icon">↺</span>
+          再玩一局
+        </button>
+      </div>
+    </div>
+
+    <footer class="site-footer">
+      <p>五子棋 Gomoku &nbsp;·&nbsp; 純 HTML / CSS / JS 製作</p>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

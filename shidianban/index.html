@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>十點半 · 莊家對賭</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Noto Sans TC','Microsoft JhengHei','PingFang TC',sans-serif;
+    min-height:100vh;
+    display:flex;flex-direction:column;align-items:center;
+    color:#f5e6c8;
+    background:radial-gradient(ellipse at 50% -10%, #3d2b18 0%, #1c130b 55%, #0c0905 100%);
+    padding:14px;
+  }
+  header{text-align:center;margin-bottom:10px}
+  header h1{
+    font-size:34px;letter-spacing:14px;text-indent:14px;
+    background:linear-gradient(180deg,#ffe9a8,#e0b356);
+    -webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;color:transparent;
+    filter:drop-shadow(0 2px 6px rgba(0,0,0,.6));
+  }
+  header .sub{font-size:12px;letter-spacing:3px;color:#b99a6a;margin-top:2px}
+
+  .chipsbar{
+    display:flex;gap:14px;align-items:center;
+    background:rgba(0,0,0,.35);border:1px solid rgba(224,179,86,.35);
+    border-radius:999px;padding:8px 22px;margin:8px 0 14px;font-size:14px;
+  }
+  .chipsbar b{color:#ffd97a;font-size:17px;margin-left:4px}
+
+  .table{
+    width:min(660px,96vw);
+    background:radial-gradient(ellipse at 50% 30%, #2f7a3d 0%, #1d5b2b 55%, #12401d 100%);
+    border-radius:180px;border:8px solid #5a3b20;
+    box-shadow:inset 0 0 60px rgba(0,0,0,.55), 0 10px 40px rgba(0,0,0,.5);
+    padding:26px 18px;
+    display:flex;flex-direction:column;gap:14px;
+  }
+  .seat{text-align:center;position:relative}
+  .seat-label{
+    display:inline-block;font-size:13px;letter-spacing:2px;
+    background:rgba(0,0,0,.45);border-radius:999px;padding:4px 18px;color:#ffe9b0;
+  }
+  .seat-total{
+    font-size:13px;color:#ffe9b0;margin-top:4px;min-height:18px;
+  }
+  .dealer-avatar{
+    width:72px;height:72px;margin:0 auto 6px;border-radius:50%;
+    background:rgba(0,0,0,.25);border:3px solid #e0b356;
+    box-shadow:0 4px 12px rgba(0,0,0,.45);overflow:hidden;
+  }
+  .dealer-avatar svg{width:100%;height:100%;display:block}
+
+  .boom{position:absolute;left:50%;top:55%;width:0;height:0;pointer-events:none;z-index:20}
+  .boom .flash{
+    position:absolute;left:0;top:0;width:90px;height:90px;margin:-45px 0 0 -45px;border-radius:50%;
+    background:radial-gradient(circle,#fffbe8 0%,#ffd54a 35%,#ff7a00 70%,rgba(255,60,0,0) 100%);
+    animation:boomflash .55s ease-out forwards;
+  }
+  @keyframes boomflash{0%{transform:scale(.2);opacity:1}100%{transform:scale(2.4);opacity:0}}
+  .boom .emoji{
+    position:absolute;left:0;top:0;margin:-28px 0 0 -28px;font-size:56px;
+    animation:boomemoji .8s ease-out forwards;
+  }
+  @keyframes boomemoji{0%{transform:scale(.3);opacity:0}25%{transform:scale(1.2);opacity:1}100%{transform:scale(1.6) translateY(-42px);opacity:0}}
+  .boom .particle{
+    position:absolute;width:9px;height:9px;border-radius:2px;left:0;top:0;margin:-4px 0 0 -4px;
+    background:var(--col);animation:boomfly .85s cubic-bezier(.2,.6,.3,1) forwards;
+  }
+  @keyframes boomfly{
+    from{transform:translate(0,0) rotate(0);opacity:1}
+    to{transform:translate(var(--dx),var(--dy)) rotate(var(--rot));opacity:0}
+  }
+  .seat.shake{animation:shaket .5s}
+  @keyframes shaket{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
+  .cards{
+    display:flex;justify-content:center;flex-wrap:wrap;gap:6px;min-height:118px;
+    padding:10px 0 4px;
+  }
+  .mid{min-height:34px;display:flex;align-items:center;justify-content:center}
+  .msg{
+    font-size:17px;font-weight:600;letter-spacing:1px;text-align:center;
+    text-shadow:0 2px 4px rgba(0,0,0,.7);color:#ffe1a0;
+  }
+  .msg.win{color:#8be89b}.msg.lose{color:#ff8b8b}.msg.push{color:#ffe1a0}
+
+  .card{
+    position:relative;width:62px;height:92px;border-radius:9px;
+    background:linear-gradient(160deg,#ffffff,#ece9e4);
+    box-shadow:0 3px 8px rgba(0,0,0,.45), inset 0 0 0 1px rgba(0,0,0,.08);
+    color:#1b1b22;
+    animation:deal .35s ease-out;
+  }
+  @keyframes deal{from{transform:translateY(-26px) scale(.8);opacity:0}to{transform:none;opacity:1}}
+  .bet-placeholder{
+    font-size:14px;color:#fffa;display:flex;align-items:center;justify-content:center;
+  }
+  .card.red{color:#d02424}
+  .corner{position:absolute;top:5px;left:6px;font-weight:800;line-height:1;display:flex;flex-direction:column;align-items:center}
+  .corner .rank{font-size:19px}
+  .corner .suit{font-size:14px}
+  .center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:34px}
+  .corner.flip{top:auto;left:auto;right:6px;bottom:5px;transform:rotate(180deg)}
+  .card.back{
+    background:repeating-linear-gradient(45deg,#7a1f1f 0 10px,#5a1616 10px 20px);
+    border:3px solid #f5e6c8;
+  }
+  .card.back::after{
+    content:'';position:absolute;inset:6px;border-radius:5px;
+    border:2px dashed #e0b356;
+  }
+
+  .controls{width:min(660px,96vw);margin-top:16px}
+  .area{display:flex;flex-direction:column;gap:10px;align-items:center}
+  .area.hidden{display:none}
+  .bet-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  button{
+    font-family:inherit;cursor:pointer;border:none;border-radius:10px;
+    font-size:15px;font-weight:700;letter-spacing:1px;color:#3a2408;
+    background:linear-gradient(180deg,#ffe3a0,#e0b356);
+    box-shadow:0 3px 0 #9a7a2e,0 5px 12px rgba(0,0,0,.35);
+    padding:10px 18px;
+    transition:transform .06s, box-shadow .06s, filter .15s;
+  }
+  button:hover{filter:brightness(1.08)}
+  button:active{transform:translateY(2px);box-shadow:0 1px 0 #9a7a2e}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  button.primary{min-width:150px;padding:12px 26px;font-size:18px;color:#2b1a04}
+  button.ghost{
+    background:transparent;color:#b99a6a;box-shadow:none;border:1px solid #5a4630;
+    font-size:13px;font-weight:600;margin-top:10px;padding:8px 16px;
+  }
+  button.ghost:hover{background:rgba(224,179,86,.1);filter:none}
+
+  details.rules{
+    width:min(660px,96vw);margin-top:16px;
+    background:rgba(0,0,0,.3);border:1px solid #5a4630;border-radius:12px;padding:10px 14px;
+  }
+  details summary{cursor:pointer;font-size:13px;color:#e0b356;letter-spacing:1px}
+  details ul{margin:8px 0 2px 18px;color:#d8c39b;font-size:13px;line-height:1.7}
+</style>
+</head>
+<body>
+
+  <header>
+    <h1>十點半</h1>
+    <div class="sub">莊家對賭 · Ten and a Half</div>
+  </header>
+
+  <div class="chipsbar">
+    <span>籌碼 <b id="chips">500</b></span>
+    <span>本局賭注 <b id="bet">50</b></span>
+  </div>
+
+  <div class="table">
+    <div class="seat dealer">
+      <div class="dealer-avatar" title="莊家：瓜哥">
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <path d="M22 120 Q32 84 60 82 Q88 84 98 120 Z" fill="#1f2430"/>
+          <path d="M48 120 L60 82 L72 120 Z" fill="#d43b3b"/>
+          <path d="M60 82 L52 96 L60 91 L68 96 Z" fill="#fff"/>
+          <circle cx="60" cy="57" r="40" fill="#f5c98a"/>
+          <path d="M20 52 Q18 16 60 14 Q102 16 100 52 L96 38 Q88 22 60 22 Q32 22 24 38 Z" fill="#2b2b2b"/>
+          <circle cx="20" cy="62" r="5" fill="#f0bd87"/>
+          <circle cx="100" cy="62" r="5" fill="#f0bd87"/>
+          <rect x="34" y="44" width="20" height="15" rx="4" fill="#111" transform="rotate(-6 44 51)"/>
+          <rect x="66" y="44" width="20" height="15" rx="4" fill="#111" transform="rotate(6 76 51)"/>
+          <path d="M54 50 Q60 46 66 50" stroke="#111" stroke-width="3" fill="none"/>
+          <path d="M29 50 Q34 43 39 47" stroke="#111" stroke-width="2.5" fill="none"/>
+          <path d="M81 47 Q86 43 91 50" stroke="#111" stroke-width="2.5" fill="none"/>
+          <circle cx="60" cy="63" r="4" fill="#e8b077"/>
+          <path d="M48 70 Q60 76 72 70 Q60 65 48 70 Z" fill="#2b2b2b"/>
+          <path d="M52 76 Q60 82 68 76" stroke="#7a3d1f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="seat-label">莊 家 · 瓜哥</div>
+      <div class="seat-total" id="dealerTotal"></div>
+      <div class="cards" id="dealerCards"></div>
+    </div>
+    <div class="mid">
+      <div class="msg" id="msg">請下注</div>
+    </div>
+    <div class="seat player">
+      <div class="seat-label">閒 家（你）</div>
+      <div class="seat-total" id="playerTotal"></div>
+      <div class="cards" id="playerCards"></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="area" id="betArea">
+      <div class="bet-row">
+        <button data-add="-10">-10</button>
+        <button data-add="10">+10</button>
+        <button data-add="50">+50</button>
+        <button data-add="100">+100</button>
+        <button id="btnAll">梭哈</button>
+      </div>
+      <button id="btnDeal" class="primary">發 牌</button>
+    </div>
+    <div class="area hidden" id="playerArea">
+      <button id="btnHit" class="primary">要 牌</button>
+      <button id="btnStand" class="primary">停 牌</button>
+    </div>
+    <div class="area hidden" id="resultArea">
+      <button id="btnNext" class="primary">下一局</button>
+    </div>
+  </div>
+
+  <button id="btnReset" class="ghost">全部重新開始（籌碼與牌桌重置）</button>
+
+  <details class="rules">
+    <summary>遊戲規則（點開）</summary>
+    <ul>
+      <li>使用完整一副牌（52 張）。A＝1 點，2～10 為面值，J/Q/K＝半點（0.5）。</li>
+      <li>開局時玩家與莊家「各只發一張牌」，之後由你決定要牌或停牌。</li>
+      <li>目標：點數最接近且不超過「十點半（10.5）」者獲勝，超過 10.5 就是爆牌，直接判輸。</li>
+      <li>「天牌」：只有兩張牌就湊到 10.5，輸贏以 2 倍賭注計算。</li>
+      <li>湊滿 5 張牌未爆牌稱為「五公」，為最大牌型，直接以 2 倍賭注獲勝。</li>
+      <li>「要牌」可一直補牌，「停牌」後由莊家補牌：莊家未滿 7 點必須補牌，滿 7 點（含）停止。</li>
+      <li>雙方同點為平手，退還賭注。</li>
+    </ul>
+  </details>
+
+<script>
+(function(){
+  'use strict';
+
+  var suitSym = ['\u2660','\u2665','\u2666','\u2663'];
+  var isRed = function(s){ return s===1 || s===2; };
+
+  function valueOf(r){ return r===1 ? 1 : (r>=11 ? 0.5 : r); }
+  function rankLabel(r){
+    if(r===1) return 'A';
+    if(r===11) return 'J';
+    if(r===12) return 'Q';
+    if(r===13) return 'K';
+    return String(r);
+  }
+  function totalOf(cards){
+    var t=0;
+    for(var i=0;i<cards.length;i++) t+=valueOf(cards[i].r);
+    return Math.round(t*2)/2;
+  }
+  function makeShoe(){
+    var c=[], r, s;
+    for(r=1;r<=13;r++) for(s=0;s<4;s++) c.push({r:r,s:s});
+    return c;
+  }
+  function shuffle(a){
+    for(var i=a.length-1;i>0;i--){
+      var j=Math.floor(Math.random()*(i+1));
+      var t=a[i]; a[i]=a[j]; a[j]=t;
+    }
+    return a;
+  }
+  function sleep(ms){ return new Promise(function(res){ setTimeout(res,ms); }); }
+
+  var state = {
+    shoe: [],
+    chips: 500,
+    bet: 50,
+    phase: 'bet',           // bet | player | dealer | result
+    player: { cards: [] },
+    dealer: { cards: [], hiddenFirst: true },
+    winText: ''
+  };
+
+  var chipsEl   = document.getElementById('chips');
+  var betEl     = document.getElementById('bet');
+  var playerCardsEl = document.getElementById('playerCards');
+  var dealerCardsEl = document.getElementById('dealerCards');
+  var playerTotalEl  = document.getElementById('playerTotal');
+  var dealerTotalEl  = document.getElementById('dealerTotal');
+  var msgEl     = document.getElementById('msg');
+  var betArea   = document.getElementById('betArea');
+  var playerArea= document.getElementById('playerArea');
+  var resultArea= document.getElementById('resultArea');
+  var btnHit    = document.getElementById('btnHit');
+  var btnDeal   = document.getElementById('btnDeal');
+  var btnAll    = document.getElementById('btnAll');
+  var btnNext   = document.getElementById('btnNext');
+  var elDealerSeat = document.querySelector('.seat.dealer');
+  var elPlayerSeat = document.querySelector('.seat.player');
+
+  var BOOM_COLORS = ['#ffd54a','#ff9f1c','#ff6b35','#ff3d00','#fff3b0'];
+  function boom(seatEl){
+    var b = document.createElement('div');
+    b.className = 'boom';
+    b.innerHTML = '<div class="flash"></div><div class="emoji">💥</div>';
+    for(var i=0;i<26;i++){
+      var p = document.createElement('div');
+      p.className = 'particle';
+      var ang = Math.random()*Math.PI*2;
+      var dist = 50 + Math.random()*130;
+      p.style.setProperty('--dx', Math.cos(ang)*dist+'px');
+      p.style.setProperty('--dy', Math.sin(ang)*dist+'px');
+      p.style.setProperty('--rot', (Math.random()*720-360)+'deg');
+      p.style.setProperty('--col', BOOM_COLORS[i % BOOM_COLORS.length]);
+      b.appendChild(p);
+    }
+    seatEl.appendChild(b);
+    seatEl.classList.add('shake');
+    setTimeout(function(){ seatEl.classList.remove('shake'); }, 520);
+    setTimeout(function(){ if(b.parentNode) b.parentNode.removeChild(b); }, 950);
+  }
+
+  function cardHTML(c){
+    var red = isRed(c.s);
+    var lab = rankLabel(c.r);
+    var sym = suitSym[c.s];
+    return '<div class="card '+(red?'red':'black')+'">'
+      +'<div class="corner"><span class="rank">'+lab+'</span><span class="suit">'+sym+'</span></div>'
+      +'<div class="center">'+sym+'</div>'
+      +'<div class="corner flip"><span class="suit">'+sym+'</span><span class="rank">'+lab+'</span></div>'
+      +'</div>';
+  }
+  function backHTML(){
+    return '<div class="card back"></div>';
+  }
+
+  function hit(hand){
+    if(state.shoe.length < 15) state.shoe = shuffle(makeShoe());
+    hand.cards.push(state.shoe.pop());
+    hand.total = totalOf(hand.cards);
+  }
+
+  function render(){
+    chipsEl.textContent = state.chips;
+    betEl.textContent   = state.bet;
+
+    playerCardsEl.innerHTML = state.player.cards.map(cardHTML).join('');
+    dealerCardsEl.innerHTML = state.dealer.cards.map(function(c,i){
+      return (state.dealer.hiddenFirst && i===0) ? backHTML() : cardHTML(c);
+    }).join('');
+
+    playerTotalEl.textContent = state.player.cards.length ? '點數 '+state.player.total : '';
+    dealerTotalEl.textContent = state.dealer.cards.length
+      ? (state.dealer.hiddenFirst ? '點數 ？' : '點數 '+state.dealer.total)
+      : '';
+
+    betArea.classList.toggle('hidden', state.phase!=='bet');
+    playerArea.classList.toggle('hidden', state.phase!=='player');
+    resultArea.classList.toggle('hidden', state.phase!=='result');
+
+    btnDeal.disabled = state.chips < 1;
+    btnHit.disabled  = state.player.total >= 10.5;
+
+    msgEl.className = 'msg';
+    if(state.phase==='bet')      msgEl.textContent = state.chips<1 ? '籌碼歸零，請按「全部重新開始」' : '請下注，然後發牌';
+    else if(state.phase==='player') msgEl.textContent = '輪到你：要牌 或 停牌';
+    else if(state.phase==='dealer') msgEl.textContent = '莊家補牌中⋯';
+    else {
+      msgEl.textContent = state.winText;
+      var diff = state.player.total - state.dealer.total;
+      if(state.winText.indexOf('五公')>=0 || state.winText.indexOf('天牌')>=0 || state.winText.indexOf('獲勝')>=0){
+        msgEl.className = 'msg win';
+      } else if(state.winText.indexOf('爆')>=0 && state.winText.indexOf('莊家')>=0){
+        msgEl.className = 'msg win';
+      } else if(state.winText.indexOf('爆')>=0){
+        msgEl.className = 'msg lose';
+      } else if(state.winText.indexOf('平手')>=0){
+        msgEl.className = 'msg push';
+      } else if(diff>0){
+        msgEl.className = 'msg win';
+      } else {
+        msgEl.className = 'msg lose';
+      }
+    }
+  }
+
+  function startGame(){
+    if(state.phase!=='bet') return;
+    if(state.bet<1 || state.bet>state.chips) return;
+    state.chips -= state.bet;
+    state.player = { cards: [] };
+    state.dealer = { cards: [], hiddenFirst: true };
+
+    hit(state.player);
+    hit(state.dealer);
+
+    state.phase='player';
+    render();
+  }
+
+  function playerHit(){
+    if(state.phase!=='player') return;
+    hit(state.player);
+    if(state.player.total>10.5){ resolve(); return; }
+    if(state.player.cards.length===5){ resolve(); return; }
+    if(state.player.total===10.5){ playerStand(); return; }
+    render();
+  }
+
+  async function playerStand(){
+    if(state.phase!=='player') return;
+    state.phase='dealer';
+    state.dealer.hiddenFirst = false;
+    render();
+    await sleep(500);
+    while(state.phase==='dealer' && state.dealer.total<7 && state.dealer.cards.length<5){
+      await sleep(650);
+      if(state.phase!=='dealer') return;
+      hit(state.dealer);
+      render();
+    }
+    if(state.phase!=='dealer') return;
+    resolve();
+  }
+
+  function resolve(){
+    state.phase='result';
+    state.dealer.hiddenFirst=false;
+    var P=state.player, D=state.dealer;
+    var pTian = P.total===10.5 && P.cards.length===2;
+    var dTian = D.total===10.5 && D.cards.length===2;
+    var pFive = P.total<=10.5 && P.cards.length===5;
+    var dFive = D.total<=10.5 && D.cards.length===5;
+    var win, txt;
+
+    if(P.total>10.5){
+      win=-state.bet; txt='你爆牌了（'+P.total+'）！莊家獲勝';
+      boom(elPlayerSeat);
+    }
+    else if(pFive){ win=2*state.bet; txt='五公！五張牌未爆，直接獲勝'; }
+    else if(dFive){ win=-2*state.bet; txt='莊家五公，莊家獲勝'; }
+    else if(pTian && dTian){ win=0; txt='雙方都是天牌，平手'; }
+    else if(pTian){ win=2*state.bet; txt='天牌十點半！以雙倍賭注獲勝'; }
+    else if(dTian){ win=-2*state.bet; txt='莊家天牌，以雙倍賭注落敗'; }
+    else if(D.total>10.5){
+      win=state.bet; txt='莊家爆牌（'+D.total+'）！你贏了';
+      boom(elDealerSeat);
+    }
+    else if(P.total>D.total){ win=state.bet; txt='你 '+P.total+' 點，莊家 '+D.total+' 點，你贏了'; }
+    else if(P.total===D.total){ win=0; txt='同為 '+P.total+' 點，平手退注'; }
+    else { win=-state.bet; txt='你 '+P.total+' 點，莊家 '+D.total+' 點，莊家獲勝'; }
+
+    state.winText = win<0 ? txt+'（-'+state.bet+'）' : (win>0 ? txt+'（+'+win+'）' : txt);
+    state.chips += state.bet + win;
+    state.lastWin = win;
+    render();
+  }
+
+  function nextRound(){
+    if(state.phase!=='result') return;
+    state.player={cards:[]};
+    state.dealer={cards:[],hiddenFirst:true};
+    state.winText='';
+    state.phase='bet';
+    render();
+  }
+
+  function resetTable(){
+    state.shoe=shuffle(makeShoe());
+    state.chips=500;
+    state.bet=50;
+    state.player={cards:[]};
+    state.dealer={cards:[],hiddenFirst:true};
+    state.phase='bet';
+    state.winText='';
+    render();
+  }
+
+  // ----- events -----
+  document.querySelectorAll('.bet-row [data-add]').forEach(function(b){
+    b.addEventListener('click', function(){
+      if(state.phase!=='bet') return;
+      var d=parseInt(b.getAttribute('data-add'),10);
+      state.bet=Math.min(Math.max(1,state.bet+d),Math.max(1,state.chips));
+      render();
+    });
+  });
+  btnAll.addEventListener('click', function(){
+    if(state.phase!=='bet') return;
+    state.bet=Math.max(1,state.chips);
+    render();
+  });
+  btnDeal.addEventListener('click', startGame);
+  btnHit.addEventListener('click', playerHit);
+  btnStand.addEventListener('click', playerStand);
+  btnNext.addEventListener('click', nextRound);
+  document.getElementById('btnReset').addEventListener('click', resetTable);
+
+  state.shoe=shuffle(makeShoe());
+  render();
+})();
+</script>
+</body>
+</html>
